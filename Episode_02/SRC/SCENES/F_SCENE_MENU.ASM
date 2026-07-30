@@ -1,0 +1,122 @@
+
+; ============================================================
+; PROGRAMME : JEU - GESTION DES ETATS
+; ============================================================
+; FICHIER : ETAT_MENU.ASM
+; DESCRIPTION : Gestion de l'état d'écran menu
+; ============================================================
+
+F_SCENE_MENU_INITIALISATION
+
+	; Eteindre ecran
+	CALL F_ETEINDRE_ENCRES 
+
+	; Nettoyer ecran
+	LD   HL, #C000
+	mCLEAR_BUFFER (VOID)
+
+	; Afficher titre PONG
+ 	LD   HL, SCR_MENU_ZX0
+ 	LD   DE, #C000
+ 	CALL ZX0_DECOMPRESS
+
+ 	; Afficher 'PRESS SPACE TO START'
+ 	mAFFICHER_CHAR_4xB FNT_P, TXT_MENU_PTR+00, TXT_NBL
+ 	mAFFICHER_CHAR_4xB FNT_R, TXT_MENU_PTR+02, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_E, TXT_MENU_PTR+04, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_S, TXT_MENU_PTR+06, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_S, TXT_MENU_PTR+08, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_S, TXT_MENU_PTR+12, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_P, TXT_MENU_PTR+14, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_A, TXT_MENU_PTR+16, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_C, TXT_MENU_PTR+18, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_E, TXT_MENU_PTR+20, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_T, TXT_MENU_PTR+24, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_O, TXT_MENU_PTR+26, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_S, TXT_MENU_PTR+30, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_T, TXT_MENU_PTR+32, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_A, TXT_MENU_PTR+34, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_R, TXT_MENU_PTR+36, TXT_NBL
+	mAFFICHER_CHAR_4xB FNT_T, TXT_MENU_PTR+38, TXT_NBL
+
+	; Allumer ecran
+ 	LD   HL, SCR_MENU_PAL
+    LD   BC, GA_PORT
+    LD   A, PAL_NBE
+    mGA_SET_PALETTE (VOID)
+
+	; Initialse le compteur de frames   
+    XOR A
+    LD (TICK_FRAME), A
+    LD (TICK_FRAME+1), A
+        
+RET
+
+F_TEXT_BLINKED
+
+	LD   B, HI(GA_PORT)
+
+	LD   A, (TICK_FRAME)	
+	
+	CP   TXT_BLINK_BLANC
+	JR   Z, F_TEXT_NOIR
+	
+	CP   TXT_BLINK_NOIR
+	JR   Z, F_TEXT_BLANC
+
+	RET
+	
+F_TEXT_BLANC
+
+	LD   A, GA_PEN_6   
+    LD   D, HW_BRIGHT_WHITE
+    mGA_SET_PEN_INK (VOID)
+
+    LD   A, GA_PEN_7   
+    LD   D, HW_WHITE
+    mGA_SET_PEN_INK (VOID)
+
+    XOR A
+    LD (TICK_FRAME), A
+
+	RET
+
+F_TEXT_NOIR
+
+	LD   A, GA_PEN_6   
+    LD   D, HW_BLACK
+    mGA_SET_PEN_INK
+
+    LD   A, GA_PEN_7   
+    mGA_SET_PEN_INK
+    
+	RET
+
+F_SCENE_MENU
+
+	CALL F_TEXT_BLINKED	
+    mKEY_SPACE_REQUESTED (VOID) : RET  NZ
+
+SCENE_JEU
+    LD   B, ID_SCENE_JEU  
+    JP   F_CHANGER_SCENE_JEU
+
+
+;================================================================
+;  INSERTION DES DONNEES
+;================================================================
+
+TXT_MENU_PTR EQU #C30C
+PAL_NBE EQU 8
+
+TXT_BLINK_BLANC EQU 30 
+TXT_BLINK_NOIR  EQU 60
+
+SCR_MENU_PAL
+    INCLUDE "GFX/SCR_MENU.PAL"
+SCR_MENU_PAL_END
+
+SCR_MENU_ZX0
+	INCZX0 "GFX/SCR_MENU.BIN"
+SCR_MENU_ZX0_END
+
