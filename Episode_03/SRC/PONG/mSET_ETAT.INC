@@ -1,0 +1,5 @@
+
+MACRO mSET_ETAT STATE
+	LD 	 A, {STATE}
+    LD   (ETAT_JEU), A
+ENDM
